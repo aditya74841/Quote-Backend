@@ -47,11 +47,16 @@ const storeQuote = async () => {
 };
 
 // Schedule to run every day at midnight (00:00)
-cron.schedule("0 0 * * *", async () => {
+// cron.schedule("0 0 * * *", async () => {
+//   console.log("Fetching new daily quote...");
+//   await storeQuote();
+// });
+
+
+cron.schedule("1 0 * * *", async () => {
   console.log("Fetching new daily quote...");
   await storeQuote();
 });
-
 const getTodayQuote = async (req, res) => {
   try {
     // Get today's date in YYYY-MM-DD format
@@ -78,21 +83,20 @@ const getTodayQuote = async (req, res) => {
   }
 };
 
-const getAllQuotes = async (req, res) => {
+const getAllQuotes = async (req, res, next) => {
   try {
-    // Fetch all quotes sorted from newest to oldest (descending order)
-    const quotes = await Quote.find().sort({ createdAt: -1 });
+    // Get today's start time (00:00:00)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (!quotes.length) {
-      return res.status(404).json({ message: "No quotes available." });
-    }
+    // Fetch all quotes except today, sorted from newest to oldest
+    const quotes = await Quote.find({ createdAt: { $lt: today } }).sort({ createdAt: -1 });
 
     res.status(200).json(quotes);
   } catch (error) {
     console.error("Error fetching quotes:", error);
-    res
-      .status(500)
-      .json({ error: "Internal Server Error", details: error.message });
+    next(error); // Pass error to middleware if available
   }
 };
+
 export { storeQuote, getTodayQuote, getAllQuotes };
