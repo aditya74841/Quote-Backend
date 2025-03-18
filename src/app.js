@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public")); // configure static file to save images locally
 
 import quoteRouter from "../src/routes/quote.routes.js";
-
++
 app.use("/api/v1/quote", quoteRouter);
 app.get("/", (req, res) => {
  return res.status(200).json({message:"Server is running perfectly"})

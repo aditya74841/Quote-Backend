@@ -10,17 +10,11 @@ const storeQuote = async (req, res) => {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
 
-    // Check if a quote already exists for today
-    const existingQuote = await Quote.findOne({
-      createdAt: {
-        $gte: new Date(today),
-        $lt: new Date(today + "T23:59:59.999Z"),
-      },
-    });
+    // Check if a quote already exists for today based on `tdate` field
+    const existingQuote = await Quote.findOne({ tdate: today });
 
     if (existingQuote) {
-     
-      res
+      return res
         .status(404)
         .json({ message: "A quote for today already exists. Skipping..." });
     }
@@ -30,20 +24,22 @@ const storeQuote = async (req, res) => {
 
     if (!data || !data.length) {
       console.log("No quote received.");
-      return;
+      return res.status(500).json({ message: "Failed to fetch quote." });
     }
 
-    // console.log("the Data is", data);
     const { q: quote, a: author } = data[0]; // Extract quote and author
 
-    // Create and save the new quote
-    const newQuote = new Quote({ quote, author });
+    // Create and save the new quote with `tdate`
+    const newQuote = new Quote({ quote, author, tdate: today });
     await newQuote.save();
+
     return res.status(201).json({ message: "Quote saved successfully" });
   } catch (error) {
     console.error("Error fetching or storing the quote:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // Schedule to run every day at midnight (00:00)
 // cron.schedule("0 0 * * *", async () => {
