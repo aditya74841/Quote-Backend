@@ -4,6 +4,7 @@ import mongoose, { Schema } from "mongoose";
     {
         quote: { type: String },
         author: { type: String },
+        tdate: { type: String, required: true, unique: true },
     },
     { timestamps: true }
     );

@@ -10,12 +10,16 @@ const storeQuote = async (req, res) => {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
 
-    // Check if a quote already exists for today based on `tdate` field
+    console.log("Today's date:", today);
+
+    // Check if a quote already exists for today based on `tdate`
     const existingQuote = await Quote.findOne({ tdate: today });
+
+    console.log("Existing quote:", existingQuote);
 
     if (existingQuote) {
       return res
-        .status(404)
+        .status(409) // Use 409 Conflict instead of 404
         .json({ message: "A quote for today already exists. Skipping..." });
     }
 
