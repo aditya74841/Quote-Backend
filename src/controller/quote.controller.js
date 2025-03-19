@@ -60,13 +60,8 @@ const getTodayQuote = async (req, res) => {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
 
-    // Find the quote stored for today
-    const todayQuote = await Quote.findOne({
-      createdAt: {
-        $gte: new Date(today),
-        $lt: new Date(today + "T23:59:59.999Z"),
-      },
-    });
+    // Find the quote stored for today using the `tdate` field
+    const todayQuote = await Quote.findOne({ tdate: today });
 
     if (!todayQuote) {
       return res.status(404).json({ message: "No quote available for today." });
