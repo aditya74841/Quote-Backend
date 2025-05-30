@@ -86,7 +86,7 @@ const getAllQuotes = async (req, res, next) => {
 const translateAndExplainQuote = async (req, res) => {
   try {
     const { quote, author } = req.body;
-    console.log("The translateAndExplainQuote",process.env.GEMINI_API_KEY)
+   
 
     if (!quote) {
       return res.status(400).json({ message: "Quote is required." });
