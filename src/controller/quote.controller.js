@@ -44,17 +44,6 @@ const storeQuote = async (req, res) => {
   }
 };
 
-
-// Schedule to run every day at midnight (00:00)
-// cron.schedule("0 0 * * *", async () => {
-//   console.log("Fetching new daily quote...");
-//   await storeQuote();
-// });
-
-// cron.schedule("1 0 * * *", async () => {
-//   console.log("Fetching new daily quote...");
-//   await storeQuote();
-// });
 const getTodayQuote = async (req, res) => {
   try {
     // Get today's date in YYYY-MM-DD format
@@ -94,4 +83,67 @@ const getAllQuotes = async (req, res, next) => {
   }
 };
 
-export { storeQuote, getTodayQuote, getAllQuotes };
+const translateAndExplainQuote = async (req, res) => {
+  try {
+    const { quote, author } = req.body;
+    console.log("The translateAndExplainQuote",process.env.GEMINI_API_KEY)
+
+    if (!quote) {
+      return res.status(400).json({ message: "Quote is required." });
+    }
+
+    // Prompt for Gemini to translate and explain the quote
+//     const prompt = `
+// Translate the following quote into Hindi and then provide a thoughtful explanation of its meaning in English.
+
+// Quote: "${quote}"
+//     `;
+const prompt = `
+Translate the following quote into Hindi, then explain its meaning in English in 50 words.
+Return the result in this format:
+{
+  "hindi_translation": "...",
+  "explanation": "..."
+}
+Quote: "${quote}"
+`;
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const geminiOutput =
+      response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!geminiOutput) {
+      return res
+        .status(500)
+        .json({ message: "Failed to generate translation and explanation." });
+    }
+
+    return res.status(200).json({
+      original: quote,
+      author,
+      explanation: geminiOutput.trim(),
+    });
+  } catch (error) {
+    console.error("Gemini API error:", error.response?.data || error.message);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
+export { storeQuote, getTodayQuote, getAllQuotes, translateAndExplainQuote };
