@@ -83,30 +83,74 @@ const getAllQuotes = async (req, res, next) => {
   }
 };
 
-const translateAndExplainQuote = async (req, res) => {
-  try {
-    const { quote, author } = req.body;
+// const translateAndExplainQuote = async (req, res) => {
+//   try {
+//     const { quote, author } = req.body;
    
+
+//     if (!quote) {
+//       return res.status(400).json({ message: "Quote is required." });
+//     }
+
+//     // Prompt for Gemini to translate and explain the quote
+//     const prompt = `
+// Translate the following quote into Hindi and then provide a thoughtful explanation of its meaning in English in 100 words.
+
+// Quote: "${quote}"
+//     `;
+
+//     const response = await axios.post(
+//       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+//       {
+//         contents: [
+//           {
+//             parts: [{ text: prompt }],
+//           },
+//         ],
+//       },
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     const geminiOutput =
+//       response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+//     if (!geminiOutput) {
+//       return res
+//         .status(500)
+//         .json({ message: "Failed to generate translation and explanation." });
+//     }
+
+//     return res.status(200).json({
+//       original: quote,
+//       author,
+//       explanation: geminiOutput.trim(),
+//     });
+//   } catch (error) {
+//     console.error("Gemini API error:", error.response?.data || error.message);
+//     return res.status(500).json({
+//       message: "Internal server error",
+//       error: error.response?.data || error.message,
+//     });
+//   }
+// };
+
+
+const translateQuoteToHindi = async (req, res) => {
+  try {
+    const { quote } = req.body;
 
     if (!quote) {
       return res.status(400).json({ message: "Quote is required." });
     }
 
-    // Prompt for Gemini to translate and explain the quote
-//     const prompt = `
-// Translate the following quote into Hindi and then provide a thoughtful explanation of its meaning in English.
+    // const prompt = `Translate the following quote into Hindi:\n\n"${quote}"`;
+    const prompt = `Translate this quote into Hindi. Return **only one single-line Hindi translation** without any explanation or formatting:
 
-// Quote: "${quote}"
-//     `;
-const prompt = `
-Translate the following quote into Hindi, then explain its meaning in English in 50 words.
-Return the result in this format:
-{
-  "hindi_translation": "...",
-  "explanation": "..."
-}
-Quote: "${quote}"
-`;
+    "${quote}"`;
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -123,22 +167,18 @@ Quote: "${quote}"
       }
     );
 
-    const geminiOutput =
-      response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const translation = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!geminiOutput) {
-      return res
-        .status(500)
-        .json({ message: "Failed to generate translation and explanation." });
+    if (!translation) {
+      return res.status(500).json({ message: "Failed to generate translation." });
     }
 
     return res.status(200).json({
       original: quote,
-      author,
-      explanation: geminiOutput.trim(),
+      hindi_translation: translation.trim(),
     });
   } catch (error) {
-    console.error("Gemini API error:", error.response?.data || error.message);
+    console.error("Translation error:", error.response?.data || error.message);
     return res.status(500).json({
       message: "Internal server error",
       error: error.response?.data || error.message,
@@ -146,4 +186,50 @@ Quote: "${quote}"
   }
 };
 
-export { storeQuote, getTodayQuote, getAllQuotes, translateAndExplainQuote };
+// 2️⃣ Explain quote in English
+const explainQuoteInEnglish = async (req, res) => {
+  try {
+    const { quote } = req.body;
+
+    if (!quote) {
+      return res.status(400).json({ message: "Quote is required." });
+    }
+
+    const prompt = `Explain the following quote in clear, simple English within 100 words:\n\n"${quote}"`;
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const explanation = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!explanation) {
+      return res.status(500).json({ message: "Failed to generate explanation." });
+    }
+
+    return res.status(200).json({
+      original: quote,
+      explanation: explanation.trim(),
+    });
+  } catch (error) {
+    console.error("Explanation error:", error.response?.data || error.message);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
+export { storeQuote, getTodayQuote, getAllQuotes, translateQuoteToHindi,explainQuoteInEnglish };
