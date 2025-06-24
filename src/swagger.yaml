@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  title: User API
+  description: User authentication and management
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+tags:
+  - name: Quote
+    description: Quote management
+  - name: Streak
+    description: Streak management
+
+paths:
+  /quote/create-quote:
+    get:
+      tags:
+        - Quote
+      summary: Store a quote
+      responses:
+        '200':
+          description: Quote stored successfully
+
+  /quote/today:
+    get:
+      tags:
+        - Quote
+      summary: Get today’s quote
+      responses:
+        '200':
+          description: Quote of the day retrieved
+
+  /quote/all:
+    get:
+      tags:
+        - Quote
+      summary: Get all quotes
+      responses:
+        '200':
+          description: All quotes retrieved
+
+  /quote/translate:
+    post:
+      tags:
+        - Quote
+      summary: Translate quote to Hindi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quote:
+                  type: string
+      responses:
+        '200':
+          description: Quote translated to Hindi
+
+  /quote/explain:
+    post:
+      tags:
+        - Quote
+      summary: Explain quote in English
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quote:
+                  type: string
+      responses:
+        '200':
+          description: Quote explained in English
+
+  /streak:
+    post:
+      tags:
+        - Streak
+      summary: Create a streak
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+      responses:
+        '201':
+          description: Streak created
+
+    get:
+      tags:
+        - Streak
+      summary: Get streak
+      responses:
+        '200':
+          description: Streak data retrieved
+
+  /streak/change-streak/{streakId}:
+    get:
+      tags:
+        - Streak
+      summary: Change streak manually
+      parameters:
+        - name: streakId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Streak changed
+
+  /streak/update/{streakId}:
+    patch:
+      tags:
+        - Streak
+      summary: Update a streak
+      parameters:
+        - name: streakId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                updatedValue:
+                  type: string
+      responses:
+        '200':
+          description: Streak updated
+
+  /streak/delete:
+    delete:
+      tags:
+        - Streak
+      summary: Delete a streak
+      responses:
+        '200':
+          description: Streak deleted
+
+  /streak/auto-update-daily:
+    patch:
+      tags:
+        - Streak
+      summary: Automatically update streak daily
+      responses:
+        '200':
+          description: Streak auto-updated
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
