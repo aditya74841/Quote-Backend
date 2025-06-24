@@ -33,7 +33,7 @@ const swaggerDocument = YAML.load(path.resolve(__dirname, "./swagger.yaml"));
 
 swaggerDocument.servers = [
   {
-    url: process.env.FREEAPI_HOST_URL || "http://localhost:8080/api/v1",
+    url: process.env.FREEAPI_HOST_URL || "https://quote-backend-xqfm.onrender.com/api/v1",
   },
 ];
 
